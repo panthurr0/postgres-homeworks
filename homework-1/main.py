@@ -3,35 +3,46 @@ import csv
 import psycopg2
 from config import N_EMPLOYEES_DATA, N_CUSTOMERS_DATA, N_ORDERS_DATA
 
-
-def open_data_file(data):
-    new_list = []
-
-    with open(data, encoding='utf-8') as file:
-        csv_file = csv.DictReader(file)
-        for row in csv_file:
-            if row.get('employee_id'):
-                row['employee_id'] = int(row['employee_id'])
-            new_list.append(row)
-    return new_list
-
-
-def add_data(data_file, table_name):
-    with psycopg2.connect(host='localhost', database='north', user='postgres', password=1111) as conn:
-        with conn.cursor() as cur:
-            for data_info in data_file:
-                count = '%s ' * len(data_info)
-                value = tuple(data_info.values())
-                cur.execute(f"INSERT INTO {table_name} VALUES ({', '.join(count.split())})", value)
+try:
+    conn = psycopg2.connect(
+        host='localhost',
+        database='north',
+        user='postgres',
+        password='1111'
+    )
+    with conn.cursor() as cur:
+        with open(N_CUSTOMERS_DATA) as customers_file:
+            data = csv.DictReader(customers_file)
+            for record in data:
+                cur.execute('INSERT INTO customers VALUES (%s,%s,%s)', (
+                    record['customer_id'],
+                    record['company_name'],
+                    record['contact_name']
+                ))
+        with open(N_EMPLOYEES_DATA) as employees_file:
+            data = csv.DictReader(employees_file)
+            for record in data:
+                cur.execute('INSERT INTO employees VALUES (%s,%s,%s,%s,%s,%s)', (
+                    record['employee_id'],
+                    record['first_name'],
+                    record['last_name'],
+                    record['title'],
+                    record['birth_date'],
+                    record['notes']
+                ))
+        with open(N_ORDERS_DATA) as orders_file:
+            data = csv.DictReader(orders_file)
+            for record in data:
+                cur.execute('INSERT INTO orders VALUES (%s,%s,%s,%s,%s)', (
+                    record['order_id'],
+                    record['customer_id'],
+                    record['employee_id'],
+                    record['order_date'],
+                    record['ship_city']
+                ))
+        cur.execute('SELECT * FROM employees')
+        cur.execute('SELECT * FROM customers')
+        cur.execute('SELECT * FROM orders')
+finally:
+    conn.commit()
     conn.close()
-
-
-if __name__ == '__main__':
-    data_employees = open_data_file(N_EMPLOYEES_DATA)
-    add_data(data_employees, 'employees')
-
-    data_customers = open_data_file(N_CUSTOMERS_DATA)
-    add_data(data_customers, 'customers')
-
-    data_orders = open_data_file(N_ORDERS_DATA)
-    add_data(data_orders, 'orders')
