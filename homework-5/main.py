@@ -92,11 +92,12 @@ def add_foreign_keys(cur, suppliers) -> None:
     """Добавляет foreign key со ссылкой на supplier_id в таблицу products."""
     cur.execute('ALTER TABLE products '
                 'ADD COLUMN supplier_id INTEGER REFERENCES suppliers(supplier_id)'
-                )
+                )  # создаем колонку supplier_id в products
 
     cur.execute('ALTER TABLE products '
                 'ADD CONSTRAINT fk_products_suppliers '
-                'FOREIGN KEY (supplier_id) REFERENCES suppliers;')
+                'FOREIGN KEY (supplier_id) REFERENCES suppliers;'
+                )  # добавляем fk
 
     for supplier in suppliers:
         cur.execute('SELECT supplier_id FROM suppliers '
